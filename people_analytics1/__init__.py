@@ -1,1 +1,0 @@
-from people_analytics1 import config
