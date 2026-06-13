@@ -1,5 +1,5 @@
 USE RRHH;
--- Consulta para calcular la edad promedio de los empleados del área de RRHH
+-- 1. Consulta para calcular la edad promedio de los empleados del área de RRHH
 SELECT
     ROUND(
         AVG(TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()))
@@ -7,24 +7,24 @@ SELECT
 FROM empleados
 WHERE area = 'RRHH';
 
--- Consulta para calcular la edad promedio de los empleados del área de Contabilidad
+-- 2. Consulta para calcular la edad promedio de los empleados del área de Contabilidad
 -- con el cargo de Practicante
 SELECT
     ROUND(
         AVG(TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()))
-    ) AS edad_promedio
+    , 2) AS edad_promedio
 FROM empleados
 WHERE area = 'Contabilidad'
     AND cargo = 'Practicante';
 
--- Consulta para obtener el nombre completo y el área de los empleados del área de RRHH
+-- 3. Consulta para obtener el nombre completo y el área de los empleados del área de RRHH
 SELECT
     CONCAT_WS(' ', nombre, apellido) AS nombre_completo,
     area
 FROM empleados
 WHERE area = 'RRHH';
 
--- Consulta para obtener el ID, nombre completo y salario de los empleados con salario 
+-- 4. Consulta para obtener el ID, nombre completo y salario de los empleados con salario 
 --superior al de un empleado específico
 SELECT
     id_empleado,
@@ -36,7 +36,7 @@ WHERE salario > (
     WHERE id_empleado = 103
 );
 
--- Consulta para contar el número total de empleados que no han sido dados de baja
+-- 5. Consulta para contar el número total de empleados que no han sido dados de baja
 SELECT
     COUNT(DISTINCT e.id_empleado) AS total_empleados
 FROM empleados AS e
@@ -45,7 +45,7 @@ LEFT JOIN rotacion AS r
 WHERE r.estado_baja = 0 
     OR r.id_empleado IS NULL;
 
--- Consulta para obtener el promedio de rendimiento por área del año 2024,
+-- 6. Consulta para obtener el promedio de rendimiento por área del año 2024,
 -- considerando solo a los empleados que no han sido dados de baja
 SELECT
     e.area,
@@ -66,20 +66,20 @@ WHERE e.fecha_ingreso <= '2024-12-31'
 AND d.fecha_evaluacion BETWEEN '2024-01-01' AND '2024-12-31'
 GROUP BY e.area;
 
--- Consulta para calcular la tasa de género de los empleados que ingresaron en el año 2024
+-- 7. Consulta para calcular la tasa de género de los empleados que ingresaron en el año 2024
 SELECT
-    e.genero,
+    genero,
     ROUND(
         COUNT(*) * 100.0 / 
         (SELECT COUNT(*)
         FROM empleados
         WHERE YEAR(fecha_ingreso) = YEAR(CURDATE()))
     , 2) AS tasa_genero
-FROM empleados AS e
-WHERE YEAR(e.fecha_ingreso) = YEAR(CURDATE())
-GROUP BY e.genero;
+FROM empleados
+WHERE YEAR(fecha_ingreso) = YEAR(CURDATE())
+GROUP BY genero;
 
--- Consulta para calcular la antigüedad promedio de los empleados del área de RRHH
+-- 8. Consulta para calcular la antigüedad promedio de los empleados del área de RRHH
 SELECT
     AVG(
         TIMESTAMPDIFF(YEAR, e.fecha_ingreso, CURDATE())
@@ -92,22 +92,22 @@ WHERE e.area = 'RRHH'AND NOT EXISTS (
         AND r.estado_baja = 1
 );
 
--- Consulta para obtener el nombre completo de los empleados que tienen el mismo jefe 
--- que el empleado con ID 200
+-- 9. Consulta para obtener el nombre completo de los empleados que tienen el mismo jefe 
+-- que el empleado con ID 169
 SELECT
     e.id_empleado,
     CONCAT_WS(' ', e.nombre, e.apellido) AS nombre_completo,
     e.fecha_ingreso,
     e.area,
-    m.id_jefe_directo AS id_jefe,
+    e.id_jefe_directo AS id_jefe,
     CONCAT_WS(' ', m.nombre, m.apellido) AS nombre_jefe
 FROM empleados AS e
 JOIN empleados AS m
     ON e.id_jefe_directo = m.id_empleado
 WHERE m.id_empleado = 200;
 
--- Consulta para obtener el nombre completo, salario y área de los empleados
--- que trabajan en el mismo área que el empleado con ID 169
+-- 10. Consulta para obtener el nombre completo, salario y área de los empleados
+-- que trabajan en la mismo área que el empleado con ID 169
 SELECT
     e.id_empleado,
     CONCAT_WS(' ', e.nombre, e.apellido) AS nombre_completo,
@@ -121,7 +121,7 @@ WHERE e.area = (
     WHERE id_empleado = 169
 );
 
--- Consulta para obtener el nombre completo, área y salario de los empleados
+-- 11. Consulta para obtener el nombre completo, área y salario de los empleados
 -- con el salario mínimo por área
 WITH minimo AS (
     SELECT
@@ -140,15 +140,15 @@ SELECT
 FROM minimo
 WHERE rnk_salario = 1;
 
--- Consulta para obtener el nombre completo y el área de los empleados cuyo nombre contiene la letra "t"
-SELECT
+-- 12. Consulta para obtener el nombre completo y el área de los empleados cuyo nombre contiene la letra "t"
+SELECT  
     id_empleado,
     CONCAT_WS(' ', nombre, apellido) AS nombre_completo,
     area
 FROM empleados
 WHERE LOWER(nombre) LIKE '%t%'
 
--- Cantidad de empleados por área que no han sido dado de baja
+-- 13. Cantidad de empleados por área que no han sido dado de baja
 SELECT
     e.area,
     COUNT(*) AS total_empleados
@@ -159,9 +159,10 @@ WHERE NOT EXISTS (
     WHERE e.id_empleado = r.id_empleado
         AND r.estado_baja = 1
 )
-GROUP BY e.area;
+GROUP BY e.area
+ORDER BY total_empleados DESC;
 
--- Cantidad de empleados con mas de 3 tardanzas en el año 2024,
+-- 14. Cantidad de empleados con mas de 3 tardanzas en el año 2024,
 -- agrupados por área, considerando solo a los empleados que no han sido dados de baja
 SELECT
     e.area,
@@ -181,7 +182,8 @@ WHERE a.fecha_asistencia BETWEEN '2024-01-01' AND '2024-12-31'
             AND r.fecha_salida < '2024-01-01'
     )
 GROUP BY e.area, e.id_empleado, nombre_completo
-HAVING total_tardanzas > 3;
+HAVING total_tardanzas > 3
+ORDER BY total_tardanzas DESC;
 
 -- Consulta para calcular la tasa de rotación por área en el año 2024,
 -- considerando solo a los empleados que no han sido dados de baja
