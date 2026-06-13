@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS asistencia (
     fecha DATE NOT NULL,
     hora_trabajadas DECIMAL(10,2) NOT NULL,
     tardanzas INT NOT NULL,
+    ausencias INT NOT NULL,
     FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)
 );
