@@ -1,4 +1,6 @@
+-- Active: 1756737494822@@localhost@3306@RRHH
 USE RRHH;
+
 -- 1. Consulta para calcular la edad promedio de los empleados del área de RRHH
 SELECT
     ROUND(
@@ -51,9 +53,9 @@ SELECT
     e.area,
     ROUND(
         AVG(d.score_rendimiento), 2
-    ) AS avg_rendimiento
+        ) AS avg_rendimiento
 FROM empleados AS e
-JOIN desempeño AS d
+JOIN desempeno AS d
     ON e.id_empleado = d.id_empleado
 WHERE e.fecha_ingreso <= '2024-12-31'
     AND NOT EXISTS (
@@ -99,11 +101,11 @@ SELECT
     CONCAT_WS(' ', e.nombre, e.apellido) AS nombre_completo,
     e.fecha_ingreso,
     e.area,
-    e.id_jefe_directo AS id_jefe,
+    e.id_jefe AS id_jefe,
     CONCAT_WS(' ', m.nombre, m.apellido) AS nombre_jefe
 FROM empleados AS e
 JOIN empleados AS m
-    ON e.id_jefe_directo = m.id_empleado
+    ON e.id_jefe = m.id_empleado
 WHERE m.id_empleado = 200;
 
 -- 10. Consulta para obtener el nombre completo, salario y área de los empleados
@@ -142,11 +144,12 @@ WHERE rnk_salario = 1;
 
 -- 12. Consulta para obtener el nombre completo y el área de los empleados cuyo nombre contiene la letra "t"
 SELECT  
+    area,
     id_empleado,
-    CONCAT_WS(' ', nombre, apellido) AS nombre_completo,
-    area
+    CONCAT_WS(' ', nombre, apellido) AS nombre_completo
 FROM empleados
 WHERE LOWER(nombre) LIKE '%t%'
+ORDER BY area, nombre_completo;
 
 -- 13. Cantidad de empleados por área que no han sido dado de baja
 SELECT
@@ -164,25 +167,33 @@ ORDER BY total_empleados DESC;
 
 -- 14. Cantidad de empleados con mas de 3 tardanzas en el año 2024,
 -- agrupados por área, considerando solo a los empleados que no han sido dados de baja
+WITH tardanzas AS (
+    SELECT
+        e.area,
+        e.id_empleado,
+        CONCAT_WS(' ', e.nombre, e.apellido) AS nombre_completo,
+        SUM(a.tardanzas) AS total_tardanzas,
+        ROW_NUMBER() OVER(PARTITION BY e.area ORDER BY SUM(a.tardanzas) DESC) AS rnk
+    FROM empleados AS e
+    JOIN asistencia AS a
+        ON e.id_empleado = a.id_empleado
+    WHERE a.fecha BETWEEN '2024-01-01' AND '2024-12-31'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM rotacion AS r
+            WHERE e.id_empleado = r.id_empleado
+                AND r.estado_baja = 1
+                AND r.fecha_salida < '2024-01-01'
+        )
+    GROUP BY e.area, e.id_empleado, nombre_completo
+)
 SELECT
-    e.area,
-    e.id_empleado,
-    CONCAT_WS(' ', e.nombre, e.apellido) AS nombre_completo,
-    COUNT(*) AS total_tardanzas
-FROM empleados AS e
-JOIN asistencia AS a
-    ON e.id_empleado = a.id_empleado
-WHERE a.fecha_asistencia BETWEEN '2024-01-01' AND '2024-12-31'
-    AND a.estado_asistencia = 1
-    AND NOT EXISTS (
-        SELECT 1
-        FROM rotacion AS r
-        WHERE e.id_empleado = r.id_empleado
-            AND r.estado_baja = 1
-            AND r.fecha_salida < '2024-01-01'
-    )
-GROUP BY e.area, e.id_empleado, nombre_completo
-HAVING total_tardanzas > 3
+    area,
+    id_empleado,
+    nombre_completo,
+    total_tardanzas
+FROM tardanzas
+WHERE total_tardanzas > 3
 ORDER BY total_tardanzas DESC;
 
 -- Consulta para calcular la tasa de rotación por área en el año 2024,
@@ -233,7 +244,7 @@ promedio AS (
     SELECT
         i.area,
         ROUND(
-            ((i.total_inicio + f.total_final) / 2)
+            ((i.total_inicio + f.total_final) / 2.0)
         , 2) AS promedio_empleados
     FROM inicio AS i
     JOIN final AS f
