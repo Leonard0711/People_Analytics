@@ -1,0 +1,7 @@
+USE RECRUITMENT;
+
+CREATE TABLE IF NOT EXISTS reclutadores (
+    id_reclutador INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    apellido VARCHAR(50) NOT NULL
+);
