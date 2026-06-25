@@ -1,0 +1,12 @@
+USE RECRUITMENT;
+
+CREATE TABLE IF NOT EXISTS etapas (
+    id_etapa INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_etapa VARCHAR(30) NOT NULL UNIQUE,
+    descripcion_etapa VARCHAR(255) NOT NULL
+);
+
+ALTER TABLE etapas
+ADD COLUMN orden_etapa INT NOT NULL UNIQUE;
+
+SHOW COLUMNS FROM etapas;
