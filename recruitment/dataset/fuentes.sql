@@ -1,6 +1,0 @@
-USE RECRUITMENT;
-
-CREATE TABLE IF NOT EXISTS fuentes (
-    id_fuente INT PRIMARY KEY AUTO_INCREMENT,
-    nombre_fuente VARCHAR(30) NOT NULL
-)
