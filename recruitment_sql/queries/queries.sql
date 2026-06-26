@@ -144,7 +144,7 @@ SELECT
 	, 2) AS tasa_contratados
 FROM requerimientos AS req
 JOIN reclutadores AS r
-	ON req.id_reclutador = req.id_reclutador
+	ON req.id_reclutador = r.id_reclutador
 JOIN postulaciones AS p
 	ON req.id_requerimiento = p.id_requerimiento
 GROUP BY r.id_reclutador, r.nombre 
